@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+           <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -43,24 +43,31 @@
     const prank = document.getElementById('prank');
     const beep = document.getElementById('beep');
 
-    // Fake hacker text
+    // Fake randomized device details
+    const fakeIP = `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+    const fakeOS = ["Windows 10", "Windows 11", "Android", "iOS", "MacOS"][Math.floor(Math.random()*5)];
+    const fakeLocation = ["New York, USA", "Tokyo, Japan", "London, UK", "Manila, Philippines", "Berlin, Germany"][Math.floor(Math.random()*5)];
+
+    // Hacker sequence
     const lines = [
         "Initializing network scan...",
-        "Scanning 192.168.0.1 ... Access Granted",
-        "Establishing secure connection...",
-        "Downloading credentials: [#########-----] 60%",
+        `Detected Device: ${fakeOS}`,
+        `IP Address: ${fakeIP}`,
+        `Approximate Location: ${fakeLocation}`,
+        "Scanning system files...",
+        "Accessing secured folders...",
         "Bypassing firewall...",
         "Injecting payload...",
-        "Decrypting sensitive data...",
-        "Uploading files to remote server...",
-        "Tracking user location...",
-        "ERROR: Unauthorized access detected...",
-        "Attempting countermeasures...",
-        "Access stabilized. Continuing operations...",
-        "HACK SUCCESSFUL!"
+        "Downloading sensitive data...",
+        "Tracking user activity...",
+        "Establishing remote control...",
+        "Awaiting user input to finalize..."
     ];
 
     let index = 0;
+    let hackingComplete = false;
+
+    // Type effect
     function typeLine(line, callback) {
         let i = 0;
         const interval = setInterval(() => {
@@ -74,22 +81,28 @@
         }, 30);
     }
 
+    // Show next line
     function showNextLine() {
         if (index < lines.length) {
             typeLine(lines[index], showNextLine);
             index++;
         } else {
-            // After all lines, reveal prank
-            setTimeout(() => {
-                screen.style.display = "none";
-                beep.pause();
-                prank.style.display = "block";
-            }, 1000);
+            hackingComplete = true;
+            screen.textContent += "\nType anything to continue...\n";
         }
     }
 
-    // Start fake hacking
+    // Keyboard interaction
+    document.addEventListener('keydown', () => {
+        if (hackingComplete) {
+            beep.pause();
+            screen.style.display = "none";
+            prank.style.display = "block";
+        }
+    });
+
+    // Start sequence
     showNextLine();
 </script>
 </body>
-</html>                 
+</html>
