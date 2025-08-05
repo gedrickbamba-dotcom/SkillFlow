@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillFlow</title>
+<style>
+    body { margin: 0; font-family: Arial, sans-serif; transition: background 0.3s, color 0.3s; }
+    header, section, footer { padding: 20px; max-width: 800px; margin: auto; }
+    nav { position: sticky; top: 0; background: white; display: flex; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    nav a { padding: 10px 15px; text-decoration: none; color: #333; font-weight: bold; }
+    nav a:hover { color: #4CAF50; }
+    .card { background: white; border-radius: 8px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    #backToTop { position: fixed; bottom: 20px; right: 20px; padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; display: none; }
+    .dark-mode { background: #121212; color: #f1f1f1; }
+    .dark-mode nav { background: #1e1e1e; }
+    .dark-mode .card { background: #1e1e1e; }
+    .progress-bar { width: 100%; background: #ddd; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+    .progress-fill { width: 0%; height: 20px; background: #4CAF50; transition: width 0.3s; }
+    .popup { position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); display: none; }
+    #muteToggle { position: fixed; bottom: 20px; left: 20px; padding: 10px 15px; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; }
+</style>
+</head>
+<body>
+    <div class="popup" id="welcomePopup"></div>
+    <header>
+        <h1>SkillFlow</h1>
+        <p>Master essential skills, track your progress, and grow daily.</p>
+    </header>
+    <nav>
+        <a href="#challenge">Daily Challenge</a>
+        <a href="#facts">Random Facts</a>
+        <a href="#quiz">Quiz</a>
+        <a href="#assessment">Self-Assessment</a>
+        <a href="#notes">Notes</a>
+    </nav>
+
+    <section id="challenge" class="card">
+        <h2>Daily Challenge</h2>
+        <p id="dailyChallenge"></p>
+    </section>
+
+    <section id="facts" class="card">
+        <h2>Random Fact</h2>
+        <button onclick="playClick(); showFact()">Get a Fact</button>
+        <p id="factOutput"></p>
+    </section>
+
+    <section id="quiz" class="card">
+        <h2>Quick Quiz</h2>
+        <p id="quizQuestion"></p>
+        <div id="quizOptions"></div>
+        <p id="quizFeedback"></p>
+        <button onclick="playClick(); nextQuiz()">Next Question</button>
+    </section>
+
+    <section id="assessment" class="card">
+        <h2>Self-Assessment</h2>
+        <div>
+            <label>Learning:</label>
+            <input type="range" min="0" max="10" value="0" oninput="updateProgress()">
+        </div>
+        <div>
+            <label>Communication:</label>
+            <input type="range" min="0" max="10" value="0" oninput="updateProgress()">
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p id="progressText">Overall: 0%</p>
+    </section>
+
+    <section id="notes" class="card">
+        <h2>Quick Notes</h2>
+        <textarea id="notesInput" rows="4" style="width:100%;"></textarea>
+        <button onclick="playClick(); saveNotes()">Save Notes</button>
+        <p>Saved Notes:</p>
+        <p id="savedNotes"></p>
+    </section>
+
+    <button id="backToTop" onclick="scrollToTop()">Back to Top</button>
+    <button id="muteToggle" onclick="toggleMute()">🔊</button>
+
+    <footer>
+        <p>&copy; 2025 SkillFlow</p>
+    </footer>
+
+<script>
+    // Sound setup (Base64 small beep sounds)
+    const clickSound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+    const correctSound = new Audio("data:audio/wav;base64,UklGRhIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAA");
+    const wrongSound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+    let muted = false;
+
+    function playClick() { if (!muted) clickSound.play(); }
+    function playCorrect() { if (!muted) correctSound.play(); }
+    function playWrong() { if (!muted) wrongSound.play(); }
+    function toggleMute() {
+        muted = !muted;
+        document.getElementById('muteToggle').textContent = muted ? "🔇" : "🔊";
+    }
+
+    // Dark mode by time
+    if (new Date().getHours() >= 18 || new Date().getHours() < 6) {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Back to top
+    window.onscroll = function() {
+        document.getElementById('backToTop').style.display = window.scrollY > 200 ? 'block' : 'none';
+    };
+    function scrollToTop() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // Daily challenge
+    const challenges = [
+        "Observe 3 new details in your surroundings.",
+        "Teach someone one thing you learned today.",
+        "Break a small problem into 3 steps.",
+        "Write 3 clear sentences about something you learned.",
+        "Take 3 deep breaths before reacting to stress."
+    ];
+    document.getElementById('dailyChallenge').textContent = challenges[new Date().getDate() % challenges.length];
+
+    // Random facts
+    const facts = [
+        "Consistent small habits beat occasional big efforts.",
+        "Active listening improves trust and understanding.",
+        "Writing your goals increases success rates.",
+        "Breaking problems into steps reduces stress.",
+        "Observing body language helps understand emotions."
+    ];
+    function showFact() {
+        document.getElementById('factOutput').textContent = facts[Math.floor(Math.random() * facts.length)];
+    }
+
+    // Quiz
+    const quizQuestions = [
+        {q: "Which habit helps build discipline?", options: ["Doing small things daily", "Waiting for motivation"], answer: 0},
+        {q: "What helps you adapt quickly?", options: ["Avoiding change", "Learning from mistakes"], answer: 1}
+    ];
+    let currentQuestion = 0;
+    function loadQuiz() {
+        const q = quizQuestions[currentQuestion];
+        document.getElementById('quizQuestion').textContent = q.q;
+        const opts = q.options.map((opt, i) => `<button onclick="checkAnswer(${i})">${opt}</button>`).join('');
+        document.getElementById('quizOptions').innerHTML = opts;
+        document.getElementById('quizFeedback').textContent = "";
+    }
+    function checkAnswer(selected) {
+        const q = quizQuestions[currentQuestion];
+        if (selected === q.answer) {
+            playCorrect();
+            document.getElementById('quizFeedback').textContent = "Correct!";
+        } else {
+            playWrong();
+            document.getElementById('quizFeedback').textContent = "Try again.";
+        }
+    }
+    function nextQuiz() {
+        currentQuestion = (currentQuestion + 1) % quizQuestions.length;
+        loadQuiz();
+    }
+    loadQuiz();
+
+    // Self-assessment
+    function updateProgress() {
+        const sliders = document.querySelectorAll('#assessment input[type="range"]');
+        let total = 0;
+        sliders.forEach(s => total += parseInt(s.value));
+        let percent = Math.round(total / (sliders.length * 10) * 100);
+        document.getElementById('progressFill').style.width = percent + "%";
+        document.getElementById('progressText').textContent = "Overall: " + percent + "%";
+    }
+
+    // Notes
+    function saveNotes() {
+        const notes = document.getElementById('notesInput').value;
+        localStorage.setItem('skillflowNotes', notes);
+        document.getElementById('savedNotes').textContent = notes;
+    }
+    document.getElementById('savedNotes').textContent = localStorage.getItem('skillflowNotes') || "";
+
+    // Welcome popup with streak
+    let streak = parseInt(localStorage.getItem('skillflowStreak') || 0);
+    let lastVisit = localStorage.getItem('skillflowLastVisit');
+    const today = new Date().toDateString();
+    if (lastVisit !== today) {
+        streak++;
+        localStorage.setItem('skillflowStreak', streak);
+        localStorage.setItem('skillflowLastVisit', today);
+    }
+    const popup = document.getElementById('welcomePopup');
+    popup.textContent = streak > 1 ? `Welcome back! Day ${streak} of your streak.` : "Welcome to SkillFlow! Ready to start improving?";
+    popup.style.display = 'block';
+    setTimeout(() => popup.style.display = 'none', 3000);
+</script>
+</body>
+</html>
